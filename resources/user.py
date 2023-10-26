@@ -11,6 +11,7 @@ from db import db
 from models import UserModel
 from schemas import UserSchema
 from blocklist import BLOCKLIST
+import redis
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
