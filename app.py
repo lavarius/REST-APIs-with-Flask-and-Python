@@ -33,15 +33,15 @@ def create_app(db_url=None):
 
     api = Api(app)
 
-    app.config["JWT_SECRET_KEY"] = "jose"
+    app.config["JWT_SECRET_KEY"] = "mark"
     jwt = JWTManager(app)
 
-    r = redis.Redis(host='localhost', port=6379, db=0)
+    r = redis.Redis(host='redis', port=6379, db=0)
 
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blocklist(jwt_header, jwt_payload):
         jti = jwt_payload["jti"]
-        return r.sismember('blocklist', jti)
+        return r.sismember("blocklist", jti)
         # return jwt_payload["jti"] in BLOCKLIST
 
 

@@ -15,7 +15,7 @@ import redis
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host='redis', port=6379, db=0)
 
 @blp.route("/logout")
 class UserLogout(MethodView):
@@ -23,9 +23,9 @@ class UserLogout(MethodView):
     def post(self):
         jti = get_jwt()["jti"]
         r.sadd("blocklist", jti)
-        return jsonify(msg="JWT revoked")
+        # return jsonify(msg="JWT revoked")
         # BLOCKLIST.add(jti)
-        # return {"message": "Successfully logged out"}, 200
+        return {"message": "Successfully logged out"}, 200
 
 @blp.route("/register")
 class UserRegister(MethodView):

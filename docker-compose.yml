@@ -1,0 +1,17 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    environment:
+      - FLASK_ENV=development
+  redis:
+    image: "redis:alpine"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf   # Mount the custom configuration file
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]  # Use the custom config file
