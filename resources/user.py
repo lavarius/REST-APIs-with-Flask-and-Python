@@ -14,6 +14,9 @@ from models import UserModel
 from schemas import UserSchema
 import redis
 
+# Initialize the refresh count as a global variable
+# refresh_count = 0
+
 blp = Blueprint("Users", "users", description="Operations on users")
 r = redis.Redis(host='redis', port=6379, db=0)
 
@@ -29,6 +32,8 @@ class UserLogout(MethodView):
 class TokenRefresh(MethodView):
     @jwt_required(refresh=True)
     def post(self):
+        # global refresh_count  # Access the global variable
+
         current_user = get_jwt_identity()
         # Make it clear that when to add the refresh token to the blocklist will depend on the app design
 
@@ -50,11 +55,13 @@ class TokenRefresh(MethodView):
             # Create a new access token with the "fresh" claim set to False
             new_token = create_access_token(identity=current_user, fresh=False)
 
-            return {"access_token": new_token}, 200
+            return {"access_token": new_token, "refresh_count": refresh_count}, 200
         else:
             # Revoke the refresh token by adding its JTI to the blocklist
             jti = get_jwt()["jti"]
             r.sadd("blocklist", jti)
+
+            refresh_count = 0  # Re-Initialize the refresh count
 
             # Reset the refresh count for the current user when reauthenticating
             r.delete(refresh_count_key)  # Delete the refresh count key
