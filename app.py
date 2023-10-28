@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 
 from db import db
 import redis
-from blocklist import BLOCKLIST
+# from blocklist import BLOCKLIST
 
 import models
 
@@ -44,7 +44,6 @@ def create_app(db_url=None):
     def check_if_token_in_blocklist(jwt_header, jwt_payload):
         jti = jwt_payload["jti"]
         return r.sismember("blocklist", jti)
-        # return jwt_payload["jti"] in BLOCKLIST
 
     @jwt.needs_fresh_token_loader
     def token_not_fresh_callback(jwt_header, jwt_payload):
@@ -101,9 +100,6 @@ def create_app(db_url=None):
             ),
             401,
         )
-
-    # with app.app_context():
-    #     db.create_all()
 
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(ItemBlueprint)
