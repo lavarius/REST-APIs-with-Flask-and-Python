@@ -2,6 +2,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask_jwt_extended import (
     create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
     get_jwt,
     jwt_required
 )
@@ -10,9 +12,7 @@ from passlib.hash import pbkdf2_sha256
 from db import db
 from models import UserModel
 from schemas import UserSchema
-from blocklist import BLOCKLIST
 import redis
-
 
 blp = Blueprint("Users", "users", description="Operations on users")
 r = redis.Redis(host='redis', port=6379, db=0)
@@ -23,9 +23,44 @@ class UserLogout(MethodView):
     def post(self):
         jti = get_jwt()["jti"]
         r.sadd("blocklist", jti)
-        # return jsonify(msg="JWT revoked")
-        # BLOCKLIST.add(jti)
         return {"message": "Successfully logged out"}, 200
+    
+@blp.route("/refresh")
+class TokenRefresh(MethodView):
+    @jwt_required(refresh=True)
+    def post(self):
+        current_user = get_jwt_identity()
+        # Make it clear that when to add the refresh token to the blocklist will depend on the app design
+
+        refresh_count_key = f"refresh_count:{current_user}"
+        refresh_count = r.get(refresh_count_key)  # Get the refresh count from Redis
+
+        if not refresh_count:
+            refresh_count = 0
+        else:
+            # Data type conversion, byte -> int
+            refresh_count = int(refresh_count.decode('utf-8'))
+        
+        if refresh_count < 3:
+            # Increment the refresh count
+            refresh_count += 1
+
+            r.set(refresh_count_key, refresh_count)  # Store the updated count in Redis
+
+            # Create a new access token with the "fresh" claim set to False
+            new_token = create_access_token(identity=current_user, fresh=False)
+
+            return {"access_token": new_token}, 200
+        else:
+            # Revoke the refresh token by adding its JTI to the blocklist
+            jti = get_jwt()["jti"]
+            r.sadd("blocklist", jti)
+
+            # Reset the refresh count for the current user when reauthenticating
+            r.delete(refresh_count_key)  # Delete the refresh count key
+
+            return {"message": "Refresh token revoked"}, 401
+
 
 @blp.route("/register")
 class UserRegister(MethodView):
@@ -53,8 +88,9 @@ class UserLogin(MethodView):
         ).first()
 
         if user and pbkdf2_sha256.verify(user_data["password"], user.password):
-            access_token = create_access_token(identity=user.id)
-            return {"access_token": access_token}, 200
+            access_token = create_access_token(identity=user.id, fresh=True)
+            refresh_token = create_refresh_token(user.id)
+            return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
         abort(401, message="Invalid credentials.")
 
