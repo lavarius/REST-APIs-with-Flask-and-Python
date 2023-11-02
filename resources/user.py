@@ -1,6 +1,5 @@
 import os
 
-# from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask_jwt_extended import (
@@ -57,7 +56,6 @@ class UserRegister(MethodView):
         db.session.add(user)
         db.session.commit()
 
-        # current_app.queue.enqueue(send_user_registration_email, user.email, user.username)
         queue.enqueue(send_user_registration_email, user.email, user.username)
 
         return {"message": "User created successfully."}, 201
