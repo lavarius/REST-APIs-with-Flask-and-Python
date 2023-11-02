@@ -1,4 +1,6 @@
-from flask import current_app
+import os
+
+# from flask import current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask_jwt_extended import (
@@ -21,6 +23,11 @@ from blocklist import BLOCKLIST
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
+
+connection = redis.from_url(
+    os.getenv("REDIS_URL")
+)  # Get this from Render.com or run in Docker
+queue = Queue("emails", connection=connection)
 
 @blp.route("/logout")
 class UserLogout(MethodView):
@@ -50,8 +57,8 @@ class UserRegister(MethodView):
         db.session.add(user)
         db.session.commit()
 
-        current_app.queue.enqueue(send_user_registration_email, user.email, user.username)
-        # queue.enqueue(send_user_registration_email, user.email, user.username)
+        # current_app.queue.enqueue(send_user_registration_email, user.email, user.username)
+        queue.enqueue(send_user_registration_email, user.email, user.username)
 
         return {"message": "User created successfully."}, 201
 
