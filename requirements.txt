@@ -9,3 +9,4 @@ flask-migrate
 gunicorn
 requests
 psycopg2
+rq
