@@ -5,5 +5,8 @@ sqlalchemy
 flask-sqlalchemy
 flask-jwt-extended
 passlib
-redis
 flask-migrate
+gunicorn
+requests
+psycopg2
+rq

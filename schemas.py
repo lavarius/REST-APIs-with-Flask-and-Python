@@ -23,6 +23,10 @@ class UserSchema(Schema):
     password = fields.Str(required=True, load_only=True)
 
 
+class UserRegisterSchema(UserSchema):
+    email = fields.Str(required=True)
+
+
 class ItemSchema(PlainItemSchema):
     store_id = fields.Int(required=True, load_only=True)
     store = fields.Nested(PlainStoreSchema(), dump_only=True)
