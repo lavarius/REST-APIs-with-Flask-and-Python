@@ -10,32 +10,24 @@ from flask_jwt_extended import (
     jwt_required
 )
 import redis
-from rq import Queue
-from tasks import send_user_registration_email
-from sqlalchemy import or_
+# from rq import Queue
+# from tasks import send_user_registration_email
+# from sqlalchemy import or_
 from passlib.hash import pbkdf2_sha256
 
 from db import db
 from models import UserModel
-from schemas import UserSchema, UserRegisterSchema
+from schemas import UserSchema#, UserRegisterSchema
 from blocklist import BLOCKLIST
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
 r = redis.Redis(host='redis', port=6379, db=0)
 
-connection = redis.from_url(
-    os.getenv("REDIS_URL")
-)  # Get this from Render.com or run in Docker
-queue = Queue("emails", connection=connection)
-
-@blp.route("/logout")
-class UserLogout(MethodView):
-    @jwt_required()
-    def post(self):
-        jti = get_jwt()["jti"]
-        r.sadd("blocklist", jti)
-        return {"message": "Successfully logged out"}, 200
+# connection = redis.from_url(
+#     os.getenv("REDIS_URL")
+# )  # Get this from Render.com or run in Docker
+# queue = Queue("emails", connection=connection)
     
 @blp.route("/refresh")
 class TokenRefresh(MethodView):
@@ -75,25 +67,25 @@ class TokenRefresh(MethodView):
 
 @blp.route("/register")
 class UserRegister(MethodView):
-    @blp.arguments(UserRegisterSchema)
+    @blp.arguments(UserSchema)
     def post(self, user_data):
         if UserModel.query.filter(
-            or_(
-                UserModel.username == user_data["username"],
-                UserModel.email == user_data["email"]
-            )
+            # or_(
+            UserModel.username == user_data["username"]
+                # UserModel.email == user_data["email"]
+            # )
         ).first():
             abort(409, message="A user with that username or email already exists.")
 
         user = UserModel(
             username=user_data["username"],
-            email=user_data["email"],
+            # email=user_data["email"],
             password=pbkdf2_sha256.hash(user_data["password"]),
         )
         db.session.add(user)
         db.session.commit()
 
-        queue.enqueue(send_user_registration_email, user.email, user.username)
+        # queue.enqueue(send_user_registration_email, user.email, user.username)
 
         return {"message": "User created successfully."}, 201
 
@@ -108,7 +100,7 @@ class UserLogin(MethodView):
 
         if user and pbkdf2_sha256.verify(user_data["password"], user.password):
             access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(user.id)
+            refresh_token = create_refresh_token(identity=user.id)
             return {"access_token": access_token, "refresh_token": refresh_token}, 200
 
         abort(401, message="Invalid credentials.")
@@ -125,16 +117,20 @@ class TokenRefresh(MethodView):
         BLOCKLIST.add(jti)
         return {"access_token": new_token}, 200
 
+@blp.route("/logout")
+class UserLogout(MethodView):
+    @jwt_required()
+    def post(self):
+        jti = get_jwt()["jti"]
+        r.sadd("blocklist", jti)
+        return {"message": "Successfully logged out"}, 200
+
 
 @blp.route("/user/<int:user_id>")
 class User(MethodView):
     """
     This resource can be useful when testing our Flask app.
-    We may not want to expose it to public users, but for the
-    sake of demonstration in this course, it can be useful
-    when we are manipulating data regarding the users.
     """
-
     @blp.response(200, UserSchema)
     def get(self, user_id):
         user = UserModel.query.get_or_404(user_id)
