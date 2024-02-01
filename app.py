@@ -15,6 +15,7 @@ import redis
 import models
 
 from resources.user import blp as UserBlueprint
+from resources.user import r
 from resources.item import blp as ItemBlueprint
 from resources.store import blp as StoreBlueprint
 from resources.tag import blp as TagBlueprint
@@ -90,6 +91,7 @@ def create_app(db_url=None):
 
     @jwt.additional_claims_loader
     def add_claims_to_jwt(identity):
+        # Look in the database and see whether the user is an admin
         if identity == 1:
             return {"is_admin": True}
         return {"is_admin": False}
