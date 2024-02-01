@@ -10,6 +10,7 @@ services:
       - redis
     environment:
       - FLASK_ENV=development
+      - ENV=local
   redis:
     image: "redis:alpine"
     volumes:
