@@ -22,11 +22,10 @@ from blocklist import BLOCKLIST
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
-r = redis.Redis(host='redis', port=6379, db=0)
-
-# connection = redis.from_url(
-#     os.getenv("REDIS_URL")
-# )  # Get this from Render.com or run in Docker
+# r = redis.Redis(host='redis', port=6379, db=0)
+r = redis.from_url(
+    os.getenv("REDIS_URL")
+)  # Get this from Render.com or run in Docker
 # queue = Queue("emails", connection=connection)
     
 @blp.route("/refresh")
