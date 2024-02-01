@@ -5,7 +5,7 @@ from flask import Flask, jsonify
 from flask_smorest import Api
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
-from dotenv import load_dotenv
+from settings import load_dotenv
 # from rq import Queue
 
 from db import db
@@ -23,7 +23,6 @@ from resources.tag import blp as TagBlueprint
 
 def create_app(db_url=None):
     app = Flask(__name__)
-    load_dotenv()
 
     # connection = redis.from_url(
     #     os.getenv("REDIS_URL")
@@ -39,7 +38,11 @@ def create_app(db_url=None):
     app.config[
         "OPENAPI_SWAGGER_UI_URL"
     ] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL", "sqlite:///data.db")    
+    var_db_url = {
+        "local": "sqlite:///data.db",
+        "cloud": os.getenv("DATABASE_URL"),
+    }[os.getenv("ENV")]
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or var_db_url#os.getenv("DATABASE_URL", "sqlite:///data.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
     migrate = Migrate(app, db)

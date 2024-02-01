@@ -16,6 +16,7 @@ import redis
 from passlib.hash import pbkdf2_sha256
 
 from db import db
+from settings import load_dotenv
 from models import UserModel
 from schemas import UserSchema#, UserRegisterSchema
 # from blocklist import BLOCKLIST # local dev
@@ -23,10 +24,12 @@ from schemas import UserSchema#, UserRegisterSchema
 
 blp = Blueprint("Users", "users", description="Operations on users")
 # r = redis.Redis(host='redis', port=6379, db=0)
-r = redis.from_url(
-    os.getenv("REDIS_URL")
-)  # Get this from Render.com or run in Docker
-# queue = Queue("emails", connection=connection)
+# try:
+r = redis.from_url(os.getenv("REDIS_URL")) # Get this from Render.com or run in Docker
+#     print("Connected to Redis")
+# except Exception as e:
+#     print(f"Failed to connect to Redis: {e}")
+# queue = Queue("emails", connection=r)
     
 @blp.route("/refresh")
 class TokenRefresh(MethodView):
