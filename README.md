@@ -1,6 +1,6 @@
 # REST APIS with Flask and Python Project Extended with Docker
 
-This base of this project started from Teclado's Jose Salvetierra's course, and I have made modifications
+This base of this project started from Teclado's Jose Salvatierra's course, and I have made modifications
 to run docker-compose locally and test endpoints and get familiar with the CRUD operations of APIs.
 
 Render was used for deploying the Flask app on a Web Service and using a Redis server.
