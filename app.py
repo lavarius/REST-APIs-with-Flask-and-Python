@@ -9,7 +9,8 @@ from settings import load_dotenv
 # from rq import Queue
 
 from db import db
-import redis
+from oa import oauth
+# import redis
 # from blocklist import BLOCKLIST
 
 import models
@@ -46,6 +47,9 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
     migrate = Migrate(app, db)
+
+    # Initialize the OAuth object with the Flask app instance
+    oauth.init_app(app)
 
     api = Api(app)
 
