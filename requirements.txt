@@ -10,6 +10,4 @@ gunicorn
 requests
 psycopg2
 rq
-#flask-oauthlib
-#Werkzeug==0.16.1
 Authlib
