@@ -1,5 +1,10 @@
 # CONTRIBUTING
 
+## Create Docker file locally
+```
+docker build -t rest-apis-flask-python .
+```
+
 ## How to run the Dockerfile locally
 
 ```

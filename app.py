@@ -9,7 +9,7 @@ from settings import load_dotenv
 # from rq import Queue
 
 from db import db
-from oa import oauth
+from oa import oauth, github
 # import redis
 # from blocklist import BLOCKLIST
 
@@ -17,6 +17,7 @@ import models
 
 from resources.user import blp as UserBlueprint
 from resources.user import r
+from resources.github_login import blp as GithubLoginBlueprint
 from resources.item import blp as ItemBlueprint
 from resources.store import blp as StoreBlueprint
 from resources.tag import blp as TagBlueprint
@@ -45,6 +46,9 @@ def create_app(db_url=None):
     }[os.getenv("ENV")]
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url or var_db_url#os.getenv("DATABASE_URL", "sqlite:///data.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    app.register_blueprint(GithubLoginBlueprint)
+
     db.init_app(app)
     migrate = Migrate(app, db)
 
@@ -54,6 +58,8 @@ def create_app(db_url=None):
     api = Api(app)
 
     app.config["JWT_SECRET_KEY"] = "mark"
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+    
     jwt = JWTManager(app)
 
 
@@ -135,5 +141,7 @@ def create_app(db_url=None):
     api.register_blueprint(ItemBlueprint)
     api.register_blueprint(StoreBlueprint)
     api.register_blueprint(TagBlueprint)
+    #api.register_blueprint(GithubLoginBlueprint)
+
 
     return app
