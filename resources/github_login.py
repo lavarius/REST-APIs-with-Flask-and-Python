@@ -1,4 +1,4 @@
-from flask import g
+from flask import g, request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask_jwt_extended import create_access_token, create_refresh_token
@@ -21,7 +21,14 @@ class GitHubAuthorize(MethodView):
     @classmethod
     def get(cls):
         # Use authorize_access_token() to fetch the access token
-        github.authorize_access_token()
+        resp = github.authorize_access_token()
+        if resp is None or resp.get('access_token') is None:
+            error_response = {
+                "error": request.args.get("error", "Unknown error"),
+                "error_description": request.args.get("error_description", "No description provided")
+            }
+            # abort(401, message="Access token could not be retrieved")
+            return error_response, 401
         # g.access_token = resp.get('access_token')
         github_user = github.get('user')
         github_username = github_user.json().get('login')  # Adjusted this line from .data['login']
