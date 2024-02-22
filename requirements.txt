@@ -11,3 +11,4 @@ requests
 psycopg2
 rq
 Authlib
+Flask-Babel

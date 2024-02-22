@@ -1,10 +1,10 @@
 import os
-# import redis
 
 from flask import Flask, jsonify, session
 from flask_smorest import Api
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from flask_babel import Babel
 from settings import load_dotenv
 # from rq import Queue
 
@@ -27,9 +27,7 @@ def create_app(db_url=None):
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-    # app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem session type for simplicity
-    # # Initialize session
-    # session.init_app(app)
+    babel = Babel(app)
 
     # connection = redis.from_url(
     #     os.getenv("REDIS_URL")
@@ -53,6 +51,8 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     app.config["JWT_SECRET_KEY"] = "mark"
+    # Configure the path to your message catalogs
+    app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'strings'
     
     
 
@@ -65,12 +65,8 @@ def create_app(db_url=None):
     oauth.init_app(app)
 
     api = Api(app)
-
-    
-
     
     jwt = JWTManager(app)
-
 
     @jwt.needs_fresh_token_loader
     def token_not_fresh_callback(jwt_header, jwt_payload):
@@ -100,7 +96,6 @@ def create_app(db_url=None):
             ),
             401,
         )
-
 
     @jwt.revoked_token_loader
     def revoked_token_callback(jwt_header, jwt_payload):
@@ -150,6 +145,5 @@ def create_app(db_url=None):
     api.register_blueprint(ItemBlueprint)
     api.register_blueprint(StoreBlueprint)
     api.register_blueprint(TagBlueprint)
-    #api.register_blueprint(GithubLoginBlueprint)
 
     return app

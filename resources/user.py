@@ -1,5 +1,6 @@
 import os
 
+from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask_jwt_extended import (
@@ -9,6 +10,8 @@ from flask_jwt_extended import (
     get_jwt,
     jwt_required
 )
+from flask_babel import gettext
+
 import redis
 # from rq import Queue
 # from tasks import send_user_registration_email
@@ -21,6 +24,7 @@ from models import UserModel
 from schemas import UserSchema#, UserRegisterSchema
 # from blocklist import BLOCKLIST # local dev
 
+# user_schema = UserSchema()
 
 blp = Blueprint("Users", "users", description="Operations on users")
 # r = redis.Redis(host='redis', port=6379, db=0)
@@ -143,3 +147,23 @@ class User(MethodView):
         db.session.delete(user)
         db.session.commit()
         return {"message": "User deleted."}, 200
+    
+@blp.route("/user/password")
+class SetPassword(MethodView):
+    """
+    Setting the Password for a User 
+    """
+    @jwt_required(fresh=True)
+    @blp.arguments(UserSchema)
+    def post(self, user_data):
+        # user_json = request.get_json()
+        # user_data = user_schema.load(user_json) #username and new password
+        user = UserModel.find_by_username(user_data.get("username"))
+
+        if not user:
+            return {"message": "User not found."}, 400
+        
+        user.password = pbkdf2_sha256.hash(user_data.get("password"))
+        user.save_to_db()
+
+        return {"message": gettext("user_password_updated")}, 201
