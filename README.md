@@ -27,6 +27,11 @@ SQL Storage
 
 ---
 
+In Progress:
+Adding OAuth for login or registration via GitHub
+
+---
+
 From here, we want to change things up and using services you'll see at Enterprises, so we'll use Azure in this case since I'm most familiar with it at the moment.
 
 To Do: Extend with Azure Web Services

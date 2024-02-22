@@ -1,7 +1,7 @@
 import os
 # import redis
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, session
 from flask_smorest import Api
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -26,6 +26,11 @@ from resources.tag import blp as TagBlueprint
 def create_app(db_url=None):
     app = Flask(__name__)
 
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+    # app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem session type for simplicity
+    # # Initialize session
+    # session.init_app(app)
+
     # connection = redis.from_url(
     #     os.getenv("REDIS_URL")
     # )  # Get this from Render.com or run in Docker
@@ -47,6 +52,10 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url or var_db_url#os.getenv("DATABASE_URL", "sqlite:///data.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+    app.config["JWT_SECRET_KEY"] = "mark"
+    
+    
+
     app.register_blueprint(GithubLoginBlueprint)
 
     db.init_app(app)
@@ -57,8 +66,8 @@ def create_app(db_url=None):
 
     api = Api(app)
 
-    app.config["JWT_SECRET_KEY"] = "mark"
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+    
+
     
     jwt = JWTManager(app)
 
@@ -142,6 +151,5 @@ def create_app(db_url=None):
     api.register_blueprint(StoreBlueprint)
     api.register_blueprint(TagBlueprint)
     #api.register_blueprint(GithubLoginBlueprint)
-
 
     return app
