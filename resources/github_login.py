@@ -1,4 +1,4 @@
-from flask import g, request
+from flask import g, request, url_for
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask_jwt_extended import create_access_token, create_refresh_token
@@ -13,7 +13,7 @@ blp = Blueprint('github_login', __name__, url_prefix='/login')
 class GitHubLogin(MethodView):
     @classmethod
     def get(cls):
-        redirect_uri = "http://localhost:5000/login/github/authorized"
+        redirect_uri = url_for("github_login.GitHubAuthorize", _external=True)
         return github.authorize_redirect(redirect_uri)
 
 @blp.route('/github/authorized')
